@@ -31,7 +31,8 @@ let updateTimestamp = jsonBourneRef.update({
   timestamp: FieldValue.serverTimestamp()
 });
 
-db.collection("users")
+const snapshotSize = db
+  .collection("users")
   .where("firstName", "==", "Ada")
   .where("lastName", "==", "Lovelace")
   .get()
@@ -51,21 +52,10 @@ db.collection("users")
       return snapshot.size;
     });
   })
-  .then(numDeleted => {
-    if (numDeleted === 0) {
-      resolve();
-      return;
-    }
-
-    // Recurse on the next process tick, to avoid
-    // exploding the stack.
-    process.nextTick(() => {
-      deleteQueryBatch(db, query, batchSize, resolve, reject);
-    });
-  })
   .catch(err => {
     console.log("Error getting documents", err);
   });
+snapshotSize.then(res => console.log(res));
 
 db.collection("users")
   .get()
