@@ -1,0 +1,23 @@
+{
+  "name": "firestore_tuts",
+  "version": "1.0.0",
+  "description": "Install firebase-admin globally npm i -g firebase-admin",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamandi/firestore_tuts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iamandi/firestore_tuts/issues"
+  },
+  "homepage": "https://github.com/iamandi/firestore_tuts#readme",
+  "dependencies": {
+    "firebase-admin": "^8.7.0"
+  }
+}

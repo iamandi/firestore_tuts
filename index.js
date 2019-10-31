@@ -1,93 +1,87 @@
 const admin = require("firebase-admin");
 const FieldValue = admin.firestore.FieldValue;
 
-const serviceAccount = require("../firebase-service-account-creds/reactcryptoserver-firebase-adminsdk-jj79o-ee515f5b33.json");
+const serviceAccount = require("../firebase-service-account-creds/serviceAccount.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://reactcryptoserver.firebaseio.com"
 });
 
-let db = admin.firestore();
+const db = admin.firestore();
+const userRef = db.collection("users");
+const docRef = userRef.doc();
+const jsonBourneRef = userRef.doc("ILjZHsOv1F6jHoBeOZIJ");
 
-let docRef = db.collection("users").doc();
-
-let setAda = docRef.set({
-  firstName: "Ada",
-  lastName: "Lovelace"
-});
-
-const jsonBourneRef = db.collection("users").doc("ILjZHsOv1F6jHoBeOZIJ");
-jsonBourneRef.set({
-  firstName: "Jason",
-  lastName: "Ultimatum"
-});
-
-jsonBourneRef.update({
-  lastName: "Bourne"
-});
-
-let updateTimestamp = jsonBourneRef.update({
-  timestamp: FieldValue.serverTimestamp()
-});
-
-const snapshotSize = db
-  .collection("users")
-  .where("firstName", "==", "Ada")
-  .where("lastName", "==", "Lovelace")
-  .get()
-  .then(snapshot => {
-    // When there are no documents left, we are done
-    if (snapshot.size == 0) {
-      return 0;
-    }
-
-    // Delete documents in a batch
-    let batch = db.batch();
-    snapshot.docs.forEach(doc => {
-      batch.delete(doc.ref);
-    });
-
-    return batch.commit().then(() => {
-      return snapshot.size;
-    });
-  })
-  .catch(err => {
-    console.log("Error getting documents", err);
+function addDocument() {
+  docRef.set({
+    firstName: "Ada",
+    lastName: "Lovelace"
   });
-snapshotSize.then(res => console.log(res));
+}
 
-db.collection("users")
-  .get()
-  .then(snapshot => {
-    snapshot.forEach(doc => {
-      console.log(doc.id, "=>", doc.data());
-    });
-  })
-  .catch(err => {
-    console.log("Error getting documents", err);
+function overwriteDocument() {
+  jsonBourneRef.set({
+    firstName: "Jason",
+    lastName: "Ultimatum"
   });
+}
 
-/* 
-// For realtime updates
-let observer = docRef.onSnapshot(
-  docSnapshot => {
-    console.log("Received doc snapshot: ", docSnapshot.data());
-  },
-  err => {
-    console.log(`Encountered error: ${err}`);
-  }
-);
-
-/////////
-const authorId = "bob";
-db.collection("books")
-  .where("author", "==", authorId)
-  .where("published", ">=", 1901)
-  .get()
-  .then(snapshot => {
-    snapshot.forEach(doc => {
-      console.log(doc.id, "=>", doc.data());
-    });
+function updateDocument() {
+  jsonBourneRef.update({
+    lastName: "Bourne"
   });
- */
+}
+
+function updateTimestamp() {
+  jsonBourneRef.update({
+    timestamp: FieldValue.serverTimestamp()
+  });
+}
+
+function deleteUserComplexQuery() {
+  userRef
+    .where("firstName", "==", "Ada")
+    .where("lastName", "==", "Lovelace")
+    .get()
+    .then(snapshot => {
+      // When there are no documents left, we are done
+      if (snapshot.size == 0) {
+        return 0;
+      }
+
+      // Delete documents in a batch
+      let batch = db.batch();
+      snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+
+      return batch.commit().then(() => {
+        return snapshot.size;
+      });
+    })
+    .catch(err => {
+      console.log("Error getting documents", err);
+    });
+}
+
+function getAllUsers() {
+  userRef
+    .get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        console.log(doc.id, "=>", doc.data());
+      });
+    })
+    .catch(err => {
+      console.log("Error getting documents", err);
+    });
+}
+
+const allUsers = async function() {
+  const allUsers = await userRef.get();
+  allUsers.forEach(doc => {
+    console.log(doc.id, "=>", doc.data());
+  });
+};
+allUsers();
