@@ -84,7 +84,7 @@ const allUsers = async function() {
     console.log(doc.id, "=>", doc.data());
   });
 };
+//allUsers();
 
-
-
-
+addDocument();
+//overwriteDocument();
