@@ -23,8 +23,16 @@ function addDocument() {
 }
 
 const addTransaction = async function() {
-  const from = {id: "1sJ80CaoJASEzE4FlVuU", email: "test@test.com", address: "1AefFjNbrRFMQGJ8SA5Pyyzv47Z6sntHuQ"};
-  const to = {id: "2MKbkE3ijBwQJpXRGok6", email: "test@test.com", address: "1AefFjNbrRFMQGJ8SA5Pyyzv47Z6sntHuQ"};
+  const from = {
+    id: "1sJ80CaoJASEzE4FlVuU",
+    email: "test@test.com",
+    address: "1AefFjNbrRFMQGJ8SA5Pyyzv47Z6sntHuQ"
+  };
+  const to = {
+    id: "2MKbkE3ijBwQJpXRGok6",
+    email: "test@test.com",
+    address: "1AefFjNbrRFMQGJ8SA5Pyyzv47Z6sntHuQ"
+  };
   const amount = 1.233;
   const token = "BTC";
   const txHash =
@@ -56,8 +64,6 @@ const getTransactionWithHash = async function() {
     console.log(d.data().email);
   });
 };
-
-//getTransactionWithHash();
 
 function overwriteDocument() {
   jsonBourneRef.set({
@@ -130,3 +136,4 @@ const allUsers = async function() {
 //allUsers();
 
 //addTransaction();
+//getTransactionWithHash();

@@ -54,42 +54,6 @@ exports.addWallet = functions.auth.user().onCreate(user => {
   return batch.commit();
 });
 
-/* exports.addWalletPrivate = functions.auth.user().onCreate(user => {
-  const uid = user.uid;
-  const btcWallet = cw.generateWallet("BTC");
-  const ethWallet = cw.generateWallet("ETH");
-  const walletPrivate = {
-    bitcoin: { privateKey: btcWallet.privateKey },
-    ethereum: { privateKey: ethWallet.privateKey },
-    donpia: { privateKey: ethWallet.privateKey },
-    uid
-  };
-  const docRef = walletPrivRef.doc(uid);
-
-  return docRef.set(walletPrivate);
-});
-
-exports.createProfile = functions.auth.user().onCreate(user => {
-  const email = user.email; // The email of the user.
-  const displayName = user.displayName ? user.displayName : ""; // The display name of the user.
-  const firstName = user.firstName ? user.firstName : "";
-  const lastName = user.lastName ? user.lastName : "";
-  const phone = user.phone ? user.phone : "";
-  console.log(user);
-  console.log(`user.uid: ${user.uid}`);
-
-  const docRef = userRef.doc();
-
-  return docRef.set({
-    email,
-    displayName,
-    firstName,
-    lastName,
-    phone
-  });
-});
- */
-
 /* exports.addWallet = functions.firestore
   .document("/users/{userId}")
   .onCreate((snap, context) => {
