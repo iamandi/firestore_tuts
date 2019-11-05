@@ -1,3 +1,4 @@
+const Axios = require("axios");
 const admin = require("firebase-admin");
 const FieldValue = admin.firestore.FieldValue;
 
@@ -14,6 +15,7 @@ const docRef = userRef.doc();
 const jsonBourneRef = userRef.doc("ILjZHsOv1F6jHoBeOZIJ");
 
 const transactionsRef = db.collection("transactions");
+const walletsRef = db.collection("wallets");
 
 function addDocument() {
   docRef.set({
@@ -23,8 +25,16 @@ function addDocument() {
 }
 
 const addTransaction = async function() {
-  const from = {id: "1sJ80CaoJASEzE4FlVuU", email: "test@test.com", address: "1AefFjNbrRFMQGJ8SA5Pyyzv47Z6sntHuQ"};
-  const to = {id: "2MKbkE3ijBwQJpXRGok6", email: "test@test.com", address: "1AefFjNbrRFMQGJ8SA5Pyyzv47Z6sntHuQ"};
+  const from = {
+    id: "1sJ80CaoJASEzE4FlVuU",
+    email: "test@test.com",
+    address: "1AefFjNbrRFMQGJ8SA5Pyyzv47Z6sntHuQ"
+  };
+  const to = {
+    id: "2MKbkE3ijBwQJpXRGok6",
+    email: "test@test.com",
+    address: "1AefFjNbrRFMQGJ8SA5Pyyzv47Z6sntHuQ"
+  };
   const amount = 1.233;
   const token = "BTC";
   const txHash =
@@ -123,6 +133,21 @@ const allUsers = async function() {
     console.log(doc.id, "=>", doc.data());
   });
 };
+
+const getCryptoPortfolioUser = async function() {
+  const cryptoPortfolio = await walletsRef
+    .doc("No2HWNcfzaUNl8AckUKcdI7PQkF3")
+    .get();
+
+  const { bitcoin, donpia, ethereum } = cryptoPortfolio.data();
+  console.log(`BTC = ${bitcoin.balance}`);
+  console.log(`ETH = ${ethereum.balance}`);
+  console.log(`DON = ${donpia.balance}`);
+};
+
+
+
+//getCryptoPortfolioUser();
 
 //addDocument();
 //overwriteDocument();
