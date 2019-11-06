@@ -1,38 +1,26 @@
-/* exports.addWalletPrivate = functions.auth.user().onCreate(user => {
-  const uid = user.uid;
-  const btcWallet = cw.generateWallet("BTC");
-  const ethWallet = cw.generateWallet("ETH");
-  const walletPrivate = {
-    bitcoin: { privateKey: btcWallet.privateKey },
-    ethereum: { privateKey: ethWallet.privateKey },
-    donpia: { privateKey: ethWallet.privateKey },
-    uid
-  };
-  const docRef = walletPrivRef.doc(uid);
+/* exports.updateUnimoneyBalance = functions.firestore
+  .document("/referrals/{docId}")
+  .onCreate((snap, context) => {
+    const { referee, referred, } = snap.data();
+    console.log(context.params);
 
-  return docRef.set(walletPrivate);
-});
+    const userId = context.params.userId;
+    console.log(`userId: ${context.params.userId}`);
 
-exports.createProfile = functions.auth.user().onCreate(user => {
-  const email = user.email; // The email of the user.
-  const displayName = user.displayName ? user.displayName : ""; // The display name of the user.
-  const firstName = user.firstName ? user.firstName : "";
-  const lastName = user.lastName ? user.lastName : "";
-  const phone = user.phone ? user.phone : "";
-  console.log(user);
-  console.log(`user.uid: ${user.uid}`);
+    const restRef = unimoneyRef.doc(userId);
 
-  const docRef = userRef.doc();
+    return db.runTransaction(transaction => {
+      return transaction.get(restRef).then(restDoc => {
+        // Compute new number of ratings
+        var balance = restDoc.data().balance + newValue.bonus;
 
-  return docRef.set({
-    email,
-    displayName,
-    firstName,
-    lastName,
-    phone
-  });
-});
- */
+        // Update restaurant info
+        return transaction.update(restRef, {
+          balance
+        });
+      });
+    });
+  }); */
 
 /* exports.addWallet = functions.firestore
   .document("/users/{userId}")

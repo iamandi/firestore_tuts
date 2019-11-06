@@ -8,6 +8,7 @@ const db = admin.firestore();
 const userRef = db.collection("users");
 const walletRef = db.collection("wallets");
 const walletPrivRef = db.collection("walletsPrivate");
+const unimoneyRef = db.collection("unimoney");
 
 exports.addWallet = functions.auth.user().onCreate(user => {
   const uid = user.uid;
@@ -53,5 +54,3 @@ exports.addWallet = functions.auth.user().onCreate(user => {
 
   return batch.commit();
 });
-
-
