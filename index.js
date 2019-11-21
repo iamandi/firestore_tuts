@@ -1,4 +1,5 @@
 const Axios = require("axios");
+const config = require("config");
 const addReferral = require("./unimoney/unimoney");
 const {
   deleteUserComplexQuery,
@@ -7,10 +8,12 @@ const {
   updateDocument,
   updateTimestamp
 } = require("./users/users");
+const donAbi = require("./donpia/donpia");
 
 const Web3 = require("web3");
 const keccak_256 = require("js-sha3").keccak256;
-const config = require("config");
+const EthereumTx = require("ethereumjs-tx").Transaction;
+const Tx = require("ethereumjs-tx").Transaction;
 
 const admin = require("firebase-admin");
 const FieldValue = admin.firestore.FieldValue;
@@ -55,9 +58,10 @@ const bonus = 5000;
   });
  */
 
-const donContract = "0xe69968dd1913f135f3b28ed81d9a02368204bd66";
+const donContractAddress = "0xe69968dd1913f135f3b28ed81d9a02368204bd66";
 const projectIdEndPt = `/${config.get("project_id")}`;
 const projectSecret = `${config.get("project_secret")}`;
+const projectIdEndPtUrl = `https://mainnet.infura.io/v3${projectIdEndPt}`;
 const infuraEndPt = Axios.create({
   baseURL: "https://mainnet.infura.io/v3",
   headers: { "Content-type": "application/json" },
@@ -65,23 +69,25 @@ const infuraEndPt = Axios.create({
 });
 
 const smallAcct = "0x57f1fc145b4a5b1efa8066e43eff31fbf68deebe";
+const smallAcctPriv =
+  "0x3d3b10788ddf4a3929c0b8329a5d872b958a52b5bee658295fbc6450ed10bda4";
 const bigAcct = "0xaEeB5db2Aa3EDcD699BE99293d0e36541E3D52E1";
 
-// Get ETH balance
+//////// Get ETH balance
 infuraEndPt
   .post(projectIdEndPt, {
     jsonrpc: "2.0",
     method: "eth_getBalance",
-    params: [bigAcct, "latest"],
+    params: [smallAcct, "latest"],
     id: 1
   })
   .then(res => {
     var balance = Web3.utils.fromWei(res.data.result, "ether");
-    console.log(balance + " ETH");
+    console.log(balance + " ETH in small Account");
   })
   .catch(ex => console.log(ex.message));
 
-// Get DONPIA balance
+//////// Get DONPIA balance
 const data =
   "0x" +
   keccak_256.hex("balanceOf(address)").substr(0, 8) +
@@ -94,7 +100,7 @@ infuraEndPt
     method: "eth_call",
     params: [
       {
-        to: donContract,
+        to: donContractAddress,
         data: data
       },
       "latest"
@@ -106,3 +112,61 @@ infuraEndPt
     console.log(balance + " DON");
   })
   .catch(ex => console.log(ex.message));
+
+//////// Send
+const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
+const web3js = new Web3();
+
+// Get ERC20 Token contract instance
+let contract = new web3.eth.Contract(donAbi, donContractAddress);
+
+function sendSigned(txData, cb) {
+  const privateKey = Buffer.from(smallAcctPriv.substr(2), "hex");
+  const transaction = new Tx(txData);
+  transaction.sign(privateKey);
+  const serializedTx = transaction.serialize().toString("hex");
+  web3.eth.sendSignedTransaction("0x" + serializedTx, cb);
+}
+
+const addressFrom = smallAcct;
+const addressTo = bigAcct;
+// get the number of transactions sent so far so we can create a fresh nonce
+// Send Ethers
+web3.eth.getTransactionCount(addressFrom).then(txCount => {
+  // construct the transaction data
+  const txData = {
+    nonce: web3.utils.toHex(txCount),
+    gasPrice: "0x09184e72a000",
+    gasLimit: "0x2710",
+    to: addressTo,
+    from: addressFrom,
+    value: web3.utils.toHex(web3.utils.toWei("0.009", "ether"))
+  };
+
+  // fire away!
+  sendSigned(txData, function(err, result) {
+    if (err) return console.log("Error: ", err.message);
+    console.log("sent", result);
+  });
+});
+
+/* console.log(web3js.utils.toHex(1e16));
+// Send DON
+web3.eth.getTransactionCount(addressFrom).then(txCount => {
+  // construct the transaction data
+  const txData = {
+    nonce: web3.utils.toHex(txCount),
+    gasLimit: web3.utils.toHex(210000),
+    gasPrice: web3.utils.toHex(20 * 1e9), // 20 gwei
+    to: addressTo,
+    from: addressFrom,
+    value: "0x0",
+    data: contract.methods.transfer(addressTo, amount).encodeABI()
+  };
+
+  // fire away!
+  sendSigned(txData, function(err, result) {
+    if (err) return console.log("Error: ", err.message);
+    console.log("sent", result);
+  });
+}); */

@@ -20,6 +20,7 @@
   "dependencies": {
     "axios": "^0.19.0",
     "config": "^3.2.4",
+    "ethereumjs-tx": "^2.1.1",
     "firebase-admin": "^8.7.0",
     "js-sha3": "^0.8.0",
     "web3": "^1.2.4"
