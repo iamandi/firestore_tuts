@@ -73,6 +73,8 @@ const smallAcctPriv =
   "0x3d3b10788ddf4a3929c0b8329a5d872b958a52b5bee658295fbc6450ed10bda4";
 const bigAcct = "0xaEeB5db2Aa3EDcD699BE99293d0e36541E3D52E1";
 
+const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
+
 //////// Get ETH balance
 infuraEndPt
   .post(projectIdEndPt, {
@@ -82,6 +84,7 @@ infuraEndPt
     id: 1
   })
   .then(res => {
+    console.log("small account balance", res.data.result);
     var balance = Web3.utils.fromWei(res.data.result, "ether");
     console.log(balance + " ETH in small Account");
   })
@@ -113,9 +116,47 @@ infuraEndPt
   })
   .catch(ex => console.log(ex.message));
 
+/// get gas price
+function getGasPrice() {
+  infuraEndPt
+    .post(projectIdEndPt, {
+      jsonrpc: "2.0",
+      method: "eth_gasPrice",
+      params: [],
+      id: 1
+    })
+    .then(res => {
+      console.log("gasPrice", res.data.result);
+      gp = res.data.result;
+    })
+    .catch(ex => console.log(ex.message));
+}
+getGasPrice();
+
+/// get gas price
+function getGasPriceEstimate() {
+  infuraEndPt
+    .post(projectIdEndPt, {
+      jsonrpc: "2.0",
+      method: "eth_estimateGas",
+      params: [
+        {
+          from: smallAcct,
+          to: bigAcct,
+          value: "0x27147114878000"
+        }
+      ],
+      id: 1
+    })
+    .then(res => {
+      console.log("getGasPriceEstimate", res.data.result);
+      gp = res.data.result;
+    })
+    .catch(ex => console.log(ex.message));
+}
+getGasPriceEstimate();
+
 //////// Send
-const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
-const web3js = new Web3();
 
 // Get ERC20 Token contract instance
 let contract = new web3.eth.Contract(donAbi, donContractAddress);
@@ -133,16 +174,16 @@ const addressTo = bigAcct;
 // get the number of transactions sent so far so we can create a fresh nonce
 // Send Ethers
 const amt = web3.utils.toHex(web3.utils.toWei("0.002", "ether"));
+console.log("amt", amt);
 const gasPrice = web3.utils.toHex(web3.utils.toWei("300", "gwei"));
 const gas = web3.utils.toHex(web3.utils.toWei("0.1", "gwei"));
 const gasLimit = web3.utils.toHex(9990236);
-console.log(`amt: ${amt} --  gasPrice: ${gasPrice} --  gas: ${gas}`);
 web3.eth.getTransactionCount(addressFrom).then(txCount => {
   // construct the transaction data
   const txData = {
     nonce: web3.utils.toHex(txCount),
-    gas,
-    gasPrice,
+    gas: "0x5208",
+    gasPrice: "0x83215600",
     to: addressTo,
     from: addressFrom,
     value: amt,
