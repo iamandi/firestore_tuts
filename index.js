@@ -132,15 +132,22 @@ const addressFrom = smallAcct;
 const addressTo = bigAcct;
 // get the number of transactions sent so far so we can create a fresh nonce
 // Send Ethers
+const amt = web3.utils.toHex(web3.utils.toWei("0.002", "ether"));
+const gasPrice = web3.utils.toHex(web3.utils.toWei("300", "gwei"));
+const gas = web3.utils.toHex(web3.utils.toWei("0.1", "gwei"));
+const gasLimit = web3.utils.toHex(9990236);
+console.log(`amt: ${amt} --  gasPrice: ${gasPrice} --  gas: ${gas}`);
 web3.eth.getTransactionCount(addressFrom).then(txCount => {
   // construct the transaction data
   const txData = {
     nonce: web3.utils.toHex(txCount),
-    gasPrice: "0x09184e72a000",
-    gasLimit: "0x2710",
+    gas,
+    gasPrice,
     to: addressTo,
     from: addressFrom,
-    value: web3.utils.toHex(web3.utils.toWei("0.009", "ether"))
+    value: amt,
+    chainId: 1,
+    gasLimit
   };
 
   // fire away!
