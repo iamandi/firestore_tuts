@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "crypto-wallets": "^1.0.0",
+    "ethereumjs-tx": "^2.1.1",
     "firebase-admin": "^8.6.0",
-    "firebase-functions": "^3.3.0"
+    "firebase-functions": "^3.3.0",
+    "web3": "^1.2.4"
   },
   "devDependencies": {
     "eslint": "^5.12.0",

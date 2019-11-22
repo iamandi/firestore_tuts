@@ -13,8 +13,12 @@ const getEthereumBalance = require("./crypto-utils/getEthereumBalance");
 const getDonpiaBalance = require("./crypto-utils/getDonpiaBalance");
 const sendEthereum = require("./crypto-utils/sendEthereum");
 const getTxHashData = require("./crypto-utils/getTxHash");
+const getDonpiaTotalSupply = require("./crypto-utils/getDonpiaTotalSupply");
+const sendDonpia = require("./crypto-utils/sendDonpia");
 
 const Web3 = require("web3");
+const keccak_256 = require("js-sha3").keccak256;
+const Tx = require("ethereumjs-tx").Transaction;
 
 const admin = require("firebase-admin");
 const FieldValue = admin.firestore.FieldValue;
@@ -56,24 +60,32 @@ const infuraEndPt = Axios.create({
   headers: { "Content-type": "application/json" },
   auth: { username: "", password: projectSecret }
 });
-
-const smallAcct = "0xc5d2f13199600ab234f85fa3c585cc98fe22ae3e";
-const smallAcctPriv =
-  "0xc427dc12f080afcb64629b474ccd001ad508b81231d9dc70dce0a961b38d85da";
-const bigAcct = "0x965d23784424e52942efD08AD77c79DA0029996a";
-
 const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
+
+const smallAcctPriv = config.get("donpia_private_key");
+const smallAcct = "0x00619c45052A1472C3c14b529cee311d6bCd1b2c";
+const bigAcct = "0x965d23784424e52942efD08AD77c79DA0029996a";
 
 const contract = new web3.eth.Contract(donAbi, donContractAddress);
 
 //getEthereumBalance(infuraEndPt, projectIdEndPt, smallAcct);
 //getDonpiaBalance(infuraEndPt, projectIdEndPt, donContractAddress, bigAcct);
-
-// Get ERC20 Token contract instance
-
-const txHash =
-  "0x48ed03a74417aa26225bca574c0eb1dd81d2e8ad8c12df21b12ea6b10aa4a698";
+//const txHash =
+//  "0x48ed03a74417aa26225bca574c0eb1dd81d2e8ad8c12df21b12ea6b10aa4a698";
 //getTxHashData(infuraEndPt, projectIdEndPt, txHash);
-
-const amount = "0.001";
+//const amount = "0.001";
 //sendEthereum(web3, amount, smallAcct, bigAcct, smallAcctPriv);
+//getDonpiaTotalSupply(infuraEndPt, projectIdEndPt, donContractAddress);
+/* const addressFrom = smallAcct;
+const addressTo = bigAcct;
+const privateKey = smallAcctPriv;
+const amountToSend = "10";
+sendDonpia(
+  web3,
+  amountToSend,
+  addressFrom,
+  addressTo,
+  privateKey,
+  donContractAddress,
+  contract
+); */
