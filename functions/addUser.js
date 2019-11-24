@@ -59,10 +59,16 @@ exports.handler = (db, user) => {
     ],
     uid
   };
+
+  console.log(
+    `btcWallet.privateKey: ${btcWallet.privateKey} -- 
+    ethWallet.privateKey: ${ethWallet.privateKey}`
+  );
+
   const walletPrivate = {
     bitcoin: { privateKey: btcWallet.privateKey },
-    ethereum: { privateKey: ethWallet.privateKey },
-    donpia: { privateKey: ethWallet.privateKey },
+    ethereum: { privateKey: ethWallet.privateKey.substr(2) },
+    donpia: { privateKey: ethWallet.privateKey.substr(2) },
     uid
   };
 

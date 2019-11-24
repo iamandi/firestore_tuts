@@ -63,10 +63,10 @@ app.post("/buy-sell-crypto/sell/:uid", (req, res) => {
 app.get("/hello", (req, res) => {
   console.log("Hello World!");
   console.log("Proejct ID", functions.config().infura_project.id);
-  console.log(req);
+  console.log("headers:", req.headers.authorization);
   res.send(
     `Hello World! with ProjectID: ${functions.config().infura_project.id}`
   );
 });
 
-exports.widgets = functions.https.onRequest(app);
+exports.api = functions.https.onRequest(app);
