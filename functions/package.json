@@ -13,12 +13,27 @@
     "node": "8"
   },
   "dependencies": {
+    "@hapi/joi": "^16.1.8",
+    "axios": "^0.19.0",
+    "bcrypt": "^3.0.7",
+    "config": "^3.2.4",
     "crypto-wallets": "^1.0.0",
     "ethereumjs-tx": "^2.1.1",
+    "express-async-errors": "^3.1.1",
     "firebase-admin": "^8.6.0",
     "firebase-functions": "^3.3.0",
+    "helmet": "^3.21.2",
+    "joi": "^14.3.1",
+    "joi-objectid": "^3.0.1",
+    "js-sha3": "^0.8.0",
+    "jsonwebtoken": "^8.5.1",
+    "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "web3": "^1.2.4"
+    "mongoose": "^5.7.12",
+    "morgan": "^1.9.1",
+    "web3": "^1.2.4",
+    "winston": "^3.2.1",
+    "winston-mongodb": "^5.0.1"
   },
   "devDependencies": {
     "eslint": "^5.12.0",

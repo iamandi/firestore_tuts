@@ -16,6 +16,7 @@ router.post("/send/DON", auth, async (req, res) => {
 
   const addressFrom = ""; // get it from the DB
   const privKey = ""; // get it from DB
+  const privateKey = Buffer.from(privKey.substr(2), "hex");
 
   const addressTo = req.body.addressToSend;
   const amount = req.body.amountToSend;
@@ -28,46 +29,46 @@ router.post("/send/DON", auth, async (req, res) => {
     .transfer(addressTo, web3.utils.toWei(amount, "ether"))
     .encodeABI();
 
-  web3.eth
-    .getTransactionCount(addressFrom)
-    .then(txCount => {
-      const txData = {
-        nonce: web3.utils.toHex(txCount),
-        gas,
-        gasPrice,
-        to: contractAddress,
-        from: addressFrom,
-        value: "0x0",
-        data,
-        chainId: 1
-      };
+  try {
+    const txCount = await web3.eth.getTransactionCount(addressFrom);
+    const txData = {
+      nonce: web3.utils.toHex(txCount),
+      gas,
+      gasPrice,
+      to: contractAddress,
+      from: addressFrom,
+      value: "0x0",
+      data,
+      chainId: 1
+    };
+    const transaction = new Tx(txData);
+    transaction.sign(privateKey);
+    const serializedTx = transaction.serialize().toString("hex");
 
-      const privateKey = Buffer.from(privKey.substr(2), "hex");
-      const transaction = new Tx(txData);
-      transaction.sign(privateKey);
-      const serializedTx = transaction.serialize().toString("hex");
-      web3.eth
-        .sendSignedTransaction("0x" + serializedTx)
-        .on("transactionHash", function(hash) {
-          console.log("hash recvd", hash);
-        })
-        .on("receipt", function(receipt) {
-          console.log("receipt recvd", receipt);
-        })
-        .on("confirmation", function(confirmationNumber, receipt) {
-          console.log(
-            `confirmation recvd with confirmationNumber: ${confirmationNumber} and receipt: ${receipt}`
-          );
-          if (confirmationNumber > 8) {
-            console.log("Transaction successful. Exiting");
-            return;
-          }
-        })
-        .on("error", console.error);
-    })
-    .catch(err => {
-      console.log(err);
-    });
+    const sentTx = web3.eth.sendSignedTransaction("0x" + serializedTx);
+    sentTx
+      .on("transactionHash", hash => {
+        console.log("hash recvd", hash);
+        return;
+      })
+      .on("receipt", receipt => {
+        console.log("receipt recvd", receipt);
+        return;
+      })
+      .on("confirmation", (confirmationNumber, receipt) => {
+        console.log(
+          `confirmation recvd with confirmationNumber: ${confirmationNumber} and receipt: ${receipt}`
+        );
+        if (confirmationNumber > 8) {
+          console.log("Transaction successful. Exiting");
+        }
+        return;
+      })
+      .on("error", console.error);
+  } catch (ex) {
+    console.log(ex);
+    return;
+  }
 });
 
 router.post("/send/ETH", auth, async (req, res) => {
@@ -78,6 +79,7 @@ router.post("/send/ETH", auth, async (req, res) => {
 
   const addressFrom = ""; // get it from the DB
   const privKey = ""; // get it from DB
+  const privateKey = Buffer.from(privKey.substr(2), "hex");
 
   const amount = web3.utils.toHex(
     web3.utils.toWei(req.body.amountToSend, "ether")
@@ -85,8 +87,8 @@ router.post("/send/ETH", auth, async (req, res) => {
   const gasPrice = web3.utils.toHex(web3.utils.toWei("20", "Gwei"));
   const gas = web3.utils.toHex("21000");
 
-  web3.eth.getTransactionCount(addressFrom).then(txCount => {
-    // construct the transaction data
+  try {
+    const txCount = await web3.eth.getTransactionCount(addressFrom);
     const txData = {
       nonce: web3.utils.toHex(txCount),
       gas,
@@ -97,29 +99,35 @@ router.post("/send/ETH", auth, async (req, res) => {
       chainId: 1
     };
 
-    const privateKey = Buffer.from(privKey.substr(2), "hex");
     const transaction = new Tx(txData);
     transaction.sign(privateKey);
     const serializedTx = transaction.serialize().toString("hex");
-    web3.eth
-      .sendSignedTransaction("0x" + serializedTx)
-      .on("transactionHash", function(hash) {
+
+    const sentTx = web3.eth.sendSignedTransaction("0x" + serializedTx);
+    sentTx
+      .on("transactionHash", hash => {
         console.log("hash recvd", hash);
+        return;
       })
-      .on("receipt", function(receipt) {
+      .on("receipt", receipt => {
         console.log("receipt recvd", receipt);
+        return;
       })
-      .on("confirmation", function(confirmationNumber, receipt) {
+      .on("confirmation", (confirmationNumber, receipt) => {
         console.log(
           `confirmation recvd with confirmationNumber: ${confirmationNumber} and receipt: ${receipt}`
         );
         if (confirmationNumber > 8) {
           console.log("Transaction successful. Exiting");
-          return;
         }
+        return;
       })
       .on("error", console.error);
-  });
+    return;
+  } catch (ex) {
+    console.log(ex);
+    return;
+  }
 });
 
 /* 

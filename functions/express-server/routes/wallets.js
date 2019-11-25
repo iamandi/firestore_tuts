@@ -38,11 +38,11 @@ router.get("/refresh/DON", auth, async (req, res) => {
     .then(response => {
       var balance = Web3.utils.fromWei(response.data.result, "ether");
       console.log(">>> " + balance + " DON");
-      res.send(balance);
+      return res.send(balance);
     })
     .catch(ex => {
       console.log(ex.message);
-      res.status(500).send(ex.message);
+      return res.status(500).send(ex.message);
     });
 });
 
@@ -62,11 +62,11 @@ router.get("/refresh/ETH", auth, async (req, res) => {
     .then(response => {
       var balance = Web3.utils.fromWei(response.data.result, "ether");
       console.log(">>> " + balance + " ETH in small Account");
-      res.send(balance);
+      return res.send(balance);
     })
     .catch(ex => {
       console.log(ex.message);
-      res.status(500).send(ex.message);
+      return res.status(500).send(ex.message);
     });
 });
 

@@ -1,7 +1,7 @@
 const axios = require("axios");
 
-const projectSecret = `${process.env.project_secret}`;
-const projectIdEndPt = `/${process.env.project_id}`;
+const projectSecret = `${functions.config().infura_project.key}`;
+const projectIdEndPt = `/${functions.config().infura_project.id}`;
 const projectIdEndPtUrl = `https://mainnet.infura.io/v3${projectIdEndPt}`;
 const infuraEndPt = axios.create({
   baseURL: "https://mainnet.infura.io/v3",

@@ -1,11 +1,9 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const moment = require("moment");
-const cors = require("cors");
-const express = require("express");
-const app = express();
 
 const addWallet = require("./addUser");
+const app = require("./express-server/app");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -20,53 +18,13 @@ exports.date = functions.https.onRequest((req, res) => {
   res.status(200).send(formattedDate);
 });
 
-app.use(cors({ origin: true }));
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
-
-app.post("/my-wallet/refresh/:uid", (req, res) => {
-  const uid = req.params.uid;
-
-  console.log("/my-wallet/refresh/:uid", uid);
-  console.log(req.body);
-
-  res.send(req.body);
-});
-
-app.post("/send-recieve-crypto/send/:uid", (req, res) => {
-  const uid = req.params.uid;
-
-  console.log("/send-recieve-crypto/send/:uid", uid);
-  console.log(req.body);
-
-  res.send(req.body);
-});
-
-app.post("/buy-sell-crypto/buy/:uid", (req, res) => {
-  const uid = req.params.uid;
-
-  console.log("/buy-sell-crypto/buy/:uid", uid);
-  console.log(req.body);
-
-  res.send(req.body);
-});
-
-app.post("/buy-sell-crypto/sell/:uid", (req, res) => {
-  const uid = req.params.uid;
-
-  console.log("/buy-sell-crypto/sell/:uid", uid);
-  console.log(req.body);
-
-  res.send(req.body);
-});
-
-app.get("/hello", (req, res) => {
+/* app.get("/hello", (req, res) => {
   console.log("Hello World!");
   console.log("Proejct ID", functions.config().infura_project.id);
   console.log("headers:", req.headers.authorization);
   res.send(
     `Hello World! with ProjectID: ${functions.config().infura_project.id}`
   );
-});
+}); */
 
 exports.api = functions.https.onRequest(app);
