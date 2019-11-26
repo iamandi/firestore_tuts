@@ -1,4 +1,5 @@
 const axios = require("axios");
+const functions = require("firebase-functions");
 
 const projectSecret = `${functions.config().infura_project.key}`;
 const projectIdEndPt = `/${functions.config().infura_project.id}`;

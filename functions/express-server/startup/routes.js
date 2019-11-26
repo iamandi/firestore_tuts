@@ -6,8 +6,10 @@ const wallets = require("../routes/wallets");
 //const users = require('../routes/users');
 //const auth = require('../routes/auth');
 const error = require("../middleware/error");
+const cors = require("cors");
 
 module.exports = function(app) {
+  app.use(cors({ origin: true }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
