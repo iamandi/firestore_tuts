@@ -38,6 +38,29 @@ const jsonBourneRef = userRef.doc("ILjZHsOv1F6jHoBeOZIJ");
 const transactionsRef = db.collection("transactions");
 const walletsRef = db.collection("wallets");
 
+walletsRef
+  .doc("2MKbkE3ijBwQJpXRGok6")
+  .get()
+  .then(snapshot => {
+    console.log(snapshot.data().bitcoin.publicAddress);
+  });
+
+walletsRef.doc("2MKbkE3ijBwQJpXRGok6").set(
+  {
+    donpia: { balance: 10 }
+  },
+  { merge: true }
+);
+
+/* walletsRef
+  .doc("02NqLMDOIBXkPP00oRm9KQwnEW63")
+  .get()
+  .then(snapshot => {
+    //snapshot.forEach(doc => {
+    console.log(snapshot.data().wallet[0].publicAddress);
+    //});
+  }); */
+
 const user = "S41NqqP9pjXOsGtD5LUSbzxopOk1";
 const referred = "qUJgNaGUTFSgwtM0RHf14Ki8la92";
 const bonus = 5000;
@@ -69,7 +92,6 @@ const smallAcct = "0x00619c45052A1472C3c14b529cee311d6bCd1b2c";
 const bigAcct = "0x965d23784424e52942efD08AD77c79DA0029996a";
 
 const contract = new web3.eth.Contract(donAbi, donContractAddress);
-console.log(contract);
 
 //getEthereumBalance(infuraEndPt, projectIdEndPt, smallAcct);
 //getDonpiaBalance(infuraEndPt, projectIdEndPt, donContractAddress, bigAcct);
