@@ -33,7 +33,6 @@ exports.addMessage = addMessage;
 
 exports.getBalance = functions.https.onCall(async (data, context) => {
   const token = data.token;
-
   if (
     !(typeof token === "string") ||
     token.length === 0 ||

@@ -27,8 +27,8 @@ exports.handler = (db, user) => {
   const btcWallet = cw.generateWallet("BTC");
   const ethWallet = cw.generateWallet("ETH");
   const wallet = {
-    wallet: [
-      {
+    wallets: {
+      donpia: {
         rank: 1,
         ticker: "DON",
         token: "Donpia",
@@ -37,7 +37,7 @@ exports.handler = (db, user) => {
         publicAddress: ethWallet.address,
         classes: "red"
       },
-      {
+      bitcoin: {
         rank: 2,
         ticker: "BTC",
         token: "Bitcoin",
@@ -46,17 +46,16 @@ exports.handler = (db, user) => {
         publicAddress: btcWallet.address,
         classes: "orange"
       },
-      {
+      ethereum: {
         rank: 3,
         ticker: "ETH",
         token: "Ethereum",
         balance: 0,
         balanceUsd: 0,
-
         publicAddress: ethWallet.address,
         classes: "green"
       }
-    ],
+    },
     uid
   };
 
