@@ -91,11 +91,18 @@ const infuraEndPt = Axios.create({
 });
 const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl)); */
 
-//const web3 = require("./express-server/startup/web3");
-
 //const smallAcctPriv = config.get("donpia_private_key");
 const smallAcct = "0x00619c45052A1472C3c14b529cee311d6bCd1b2c";
 const bigAcct = "0x965d23784424e52942efD08AD77c79DA0029996a";
+
+(async () => {
+  try {
+    const txCount = await web3.eth.getTransactionCount(smallAcct);
+    console.log(txCount);
+  } catch (ex) {
+    console.log(ex);
+  }
+})();
 
 //const contract = new web3.eth.Contract(donAbi, donContractAddress);
 
