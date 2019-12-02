@@ -2,16 +2,23 @@ const functions = require("firebase-functions");
 const FieldValue = require("firebase-admin").firestore.FieldValue;
 const Web3 = require("web3");
 const Tx = require("ethereumjs-tx").Transaction;
-const web3 = require("./express-server/startup/web3");
+const { projectIdEndPtUrl } = require("./express-server/startup/infura");
 const admin = require("./express-server/config/firebaseService");
 const db = admin.firestore();
 
 module.exports = functions.https.onCall(async (data, context) => {
-  const ticker = data.ticker;
+  const token = data.token;
   const amount = data.amount;
   const addressTo = data.addressTo;
+  console.log(
+    `token = ${token} -- amount = ${amount} -- addressTo = ${addressTo}`
+  );
 
-  if (!(typeof ticker === "string") || ticker.length === 0) {
+  if (
+    !(typeof token === "string") ||
+    token.length === 0 ||
+    token !== "Ethereum"
+  ) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       "The function must be called with " +
@@ -20,7 +27,12 @@ module.exports = functions.https.onCall(async (data, context) => {
   }
 
   // TODO: validate ethereum address
-  if (!(typeof addressTo === "string") || addressTo.length === 0) {
+  console.log(`ethereum address validity ${Web3.utils.isAddress(addressTo)}`);
+  if (
+    !(typeof addressTo === "string") ||
+    addressTo.length === 0 ||
+    !Web3.utils.isAddress(addressTo)
+  ) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       "The function must be called with " +
@@ -28,7 +40,8 @@ module.exports = functions.https.onCall(async (data, context) => {
     );
   }
 
-  if (!(typeof amount === "number") || amount > 0) {
+  console.log("amount", parseFloat(amount));
+  if (!(typeof amount === "string") || parseFloat(amount) <= 0) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       "The function must be called with " +
@@ -48,9 +61,13 @@ module.exports = functions.https.onCall(async (data, context) => {
   const walletsDocRef = db.collection("wallets").doc(uid);
   const walletsPrivateDocRef = db.collection("walletsPrivate").doc(uid);
   const transfersDocRef = db.collection(`${uid}_transfers`).doc();
+  console.log("transfersDocRef", transfersDocRef);
+
+  const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
 
   try {
     const walletsDoc = await walletsDocRef.get();
+    console.log("walletsDoc", walletsDoc);
     if (!walletsDoc.exists)
       throw new functions.https.HttpsError("404: No such doc");
 
@@ -58,17 +75,27 @@ module.exports = functions.https.onCall(async (data, context) => {
     if (!walletsPrivateDoc.exists)
       throw new functions.https.HttpsError("404: No such doc");
 
+    console.log("walletsPrivateDoc", walletsPrivateDoc);
+
     const { wallets } = walletsDoc.data();
-    const addressFrom = wallets.ethereum.publicAddress;
+    console.log("wallets", wallets);
+    const { publicAddress: addressFrom } = wallets.ethereum;
 
     const { ethereum } = walletsPrivateDoc.data();
+    console.log("ethereum", ethereum);
     const privateKey = Buffer.from(ethereum.privateKey, "hex");
+    console.log("privateKey", privateKey);
 
-    const amt = Web3.utils.toHex(Web3.utils.toWei(amount, "ether"));
-    const gasPrice = Web3.utils.toHex(Web3.utils.toWei("20", "Gwei"));
-    const gas = Web3.utils.toHex("21000");
+    const amtWei = Web3.utils.toWei(amount, "ether");
+    const gasPriceWei = Web3.utils.toWei("20", "Gwei");
+    const gasNum = "21000";
+    const amt = Web3.utils.toHex(amtWei);
+    const gasPrice = Web3.utils.toHex(gasPriceWei);
+    const gas = Web3.utils.toHex(gasNum);
+    console.log(`amt = ${amt} -- gasPrice = ${gasPrice} -- gas = ${gas}`);
 
     const txCount = await web3.eth.getTransactionCount(addressFrom);
+    console.log(`txCount = ${txCount}`);
     const txData = {
       nonce: Web3.utils.toHex(txCount),
       gas,
@@ -78,10 +105,12 @@ module.exports = functions.https.onCall(async (data, context) => {
       value: amt,
       chainId: 1
     };
+    console.log(`txData = ${txData}`);
 
     const transaction = new Tx(txData);
     transaction.sign(privateKey);
     const serializedTx = transaction.serialize().toString("hex");
+    console.log("serializedTx", serializedTx);
 
     let hashVar = "";
     web3.eth
@@ -91,7 +120,7 @@ module.exports = functions.https.onCall(async (data, context) => {
 
         hashVar = hash;
         transfersDocRef.set({
-          amount: amt,
+          amount: parseFloat(amount),
           date: FieldValue.serverTimestamp(),
           hash,
           status: "pending",
@@ -102,23 +131,64 @@ module.exports = functions.https.onCall(async (data, context) => {
       })
       .on("receipt", receipt => {
         console.log("receipt recvd", receipt);
+        web3.eth
+          .getBalance(addressFrom)
+          .then(balanceWei => {
+            const balanceEth = Web3.utils.fromWei(balanceWei, "ether");
+            console.log("receipt +++++ balance in ETH : ", balanceEth);
+
+            walletsDocRef.update({
+              "wallets.ethereum.balance": balanceEth
+            });
+
+            return balanceEth;
+          })
+          .catch(err => console.log(err));
+
+        return {
+          amount: parseFloat(amount),
+          date: FieldValue.serverTimestamp(),
+          hash: hashVar,
+          status: "confirmed",
+          to_from: addressTo,
+          token: "ETH",
+          type: "sent"
+        };
       })
       .on("confirmation", (confirmationNumber, receipt) => {
         console.log(
-          `confirmation recvd with confirmationNumber: ${confirmationNumber} and receipt: ${receipt}`
+          `confirmation recvd with confirmationNumber: ${confirmationNumber} and receipt object:`
         );
+        console.log(receipt);
+
         if (confirmationNumber === 10) {
-          console.log("Transaction successful with 10 confirmations");
+          console.log("Transaction confirmed with 10 confirmations");
           transfersDocRef.update({
-            status: "successful"
+            status: "confirmed"
           });
+
+          web3.eth
+            .getBalance(addressFrom)
+            .then(balanceWei => {
+              const balanceEth = Web3.utils.fromWei(balanceWei, "ether");
+              console.log("receipt +++++ balance in ETH : ", balanceEth);
+
+              walletsDocRef.update({
+                "wallets.ethereum.balance": balanceEth
+              });
+
+              return balanceEth;
+            })
+            .catch(err => console.log(err));
+        } else if (confirmationNumber > 30) {
+          exit();
         }
       })
       .on("error", err => {
         console.log(err);
         transfersDocRef.set(
           {
-            amount: amt,
+            amount: parseFloat(amount),
             date: FieldValue.serverTimestamp(),
             hash: hashVar,
             status: "cancelled",

@@ -6,20 +6,24 @@ const {
   donContractAddress,
   donContract
 } = require("./express-server/startup/donpia");
-const web3 = require("./express-server/startup/web3");
+const { projectIdEndPtUrl } = require("./express-server/startup/infura");
 const admin = require("./express-server/config/firebaseService");
 const db = admin.firestore();
 
 module.exports = functions.https.onCall(async (data, context) => {
-  const ticker = data.ticker;
+  const token = data.token;
   const amount = data.amount;
   const addressTo = data.addressTo;
 
-  if (!(typeof ticker === "string") || ticker.length === 0) {
+  if (
+    !(typeof token === "string") ||
+    token.length === 0 ||
+    token !== "Donpia"
+  ) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       "The function must be called with " +
-        'one arguments "ticker" with valid ticker.'
+        'one arguments "token" with valid token.'
     );
   }
 
@@ -32,7 +36,11 @@ module.exports = functions.https.onCall(async (data, context) => {
     );
   }
 
-  if (!(typeof amount === "number") || amount > 0) {
+  if (
+    !(typeof amount === "string") ||
+    !parseFloat(amount) ||
+    parseFloat(amount) > 0
+  ) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       "The function must be called with " +
@@ -52,6 +60,8 @@ module.exports = functions.https.onCall(async (data, context) => {
   const walletsDocRef = db.collection("wallets").doc(uid);
   const walletsPrivateDocRef = db.collection("walletsPrivate").doc(uid);
   const transfersDocRef = db.collection(`${uid}_transfers`).doc();
+
+  const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
 
   try {
     const walletsDoc = await walletsDocRef.get();
@@ -117,10 +127,20 @@ module.exports = functions.https.onCall(async (data, context) => {
           `confirmation recvd with confirmationNumber: ${confirmationNumber} and receipt: ${receipt}`
         );
         if (confirmationNumber === 10) {
-          console.log("Transaction successful with 10 confirmations");
+          console.log("Transaction confirmed with 10 confirmations");
           transfersDocRef.update({
-            status: "successful"
+            status: "confirmed"
           });
+
+          return {
+            amount: amt,
+            date: FieldValue.serverTimestamp(),
+            hash: hashVar,
+            status: "confirmed",
+            to_from: addressTo,
+            token: "ETH",
+            type: "sent"
+          };
         }
       })
       .on("error", err => {
