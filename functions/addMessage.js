@@ -37,16 +37,31 @@ module.exports = functions.https.onCall((data, context) => {
   const sanitizedMessage = text; // Sanitize the message.
   return (
     admin
-      .database()
-      .ref("/messages")
-      .push({
+      .firestore()
+      .collection("messages")
+      .doc(uid)
+      .set({
         text: sanitizedMessage,
         author: { uid, name, picture, email }
       })
-      .then(() => {
+      .then(async () => {
         console.log("New Message written");
         // Returning the sanitized message to the client.
-        return { text: sanitizedMessage };
+
+        try {
+          const doc = await admin
+            .firestore()
+            .collection("messages")
+            .doc(uid);
+
+          if (!doc.exists) return { text: "No such doc!" };
+          else {
+            console.log("New Message read ", doc.data());
+            return { text: doc.data() };
+          }
+        } catch (ex) {
+          throw new functions.https.HttpsError("read unknown", ex.message, ex);
+        }
       })
       // [END returnMessageAsync]
       .catch(error => {

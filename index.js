@@ -38,7 +38,7 @@ const jsonBourneRef = userRef.doc("ILjZHsOv1F6jHoBeOZIJ");
 const transactionsRef = db.collection("transactions");
 const walletsRef = db.collection("wallets");
 
-walletsRef
+/* walletsRef
   .doc("2MKbkE3ijBwQJpXRGok6")
   .get()
   .then(snapshot => {
@@ -50,7 +50,13 @@ walletsRef.doc("2MKbkE3ijBwQJpXRGok6").set(
     donpia: { balance: 10 }
   },
   { merge: true }
-);
+); */
+
+/* (async function() {
+  const bal = await walletsRef.doc("02NqLMDOIBXkPP00oRm9KQwnEW63").get();
+  const { wallets } = bal.data();
+  console.log(wallets);
+})(); */
 
 /* walletsRef
   .doc("02NqLMDOIBXkPP00oRm9KQwnEW63")
@@ -74,7 +80,7 @@ const bonus = 5000;
 //getTransactionWithHash();
 //addTransaction();
 
-const donContractAddress = "0xe69968dd1913f135f3b28ed81d9a02368204bd66";
+/* const donContractAddress = "0xe69968dd1913f135f3b28ed81d9a02368204bd66";
 const projectIdEndPt = `/${config.get("project_id")}`;
 const projectSecret = `${config.get("project_secret")}`;
 const projectIdEndPtUrl = `https://mainnet.infura.io/v3${projectIdEndPt}`;
@@ -83,15 +89,15 @@ const infuraEndPt = Axios.create({
   headers: { "Content-type": "application/json" },
   auth: { username: "", password: projectSecret }
 });
-const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
+const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl)); */
 
 //const web3 = require("./express-server/startup/web3");
 
-const smallAcctPriv = config.get("donpia_private_key");
+//const smallAcctPriv = config.get("donpia_private_key");
 const smallAcct = "0x00619c45052A1472C3c14b529cee311d6bCd1b2c";
 const bigAcct = "0x965d23784424e52942efD08AD77c79DA0029996a";
 
-const contract = new web3.eth.Contract(donAbi, donContractAddress);
+//const contract = new web3.eth.Contract(donAbi, donContractAddress);
 
 //getEthereumBalance(infuraEndPt, projectIdEndPt, smallAcct);
 //getDonpiaBalance(infuraEndPt, projectIdEndPt, donContractAddress, bigAcct);

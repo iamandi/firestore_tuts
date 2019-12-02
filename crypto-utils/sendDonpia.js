@@ -13,7 +13,7 @@ module.exports = (
   contractAddress,
   contract
 ) => {
-  contract.fram = addressFrom;
+  contract.from = addressFrom;
   const data = contract.methods
     .transfer(addressTo, web3.utils.toWei(amount, "ether"))
     .encodeABI();
