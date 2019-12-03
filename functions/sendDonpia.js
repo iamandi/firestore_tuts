@@ -9,9 +9,9 @@ const {
 } = require("./express-server/startup/donpia");
 const {
   infuraEndPt,
-  projectIdEndPt
+  projectIdEndPt,
+  projectIdEndPtUrl
 } = require("./express-server/startup/infura");
-const { projectIdEndPtUrl } = require("./express-server/startup/infura");
 const admin = require("./express-server/config/firebaseService");
 const db = admin.firestore();
 
@@ -163,35 +163,38 @@ module.exports = functions.https.onCall(async (data, context) => {
           type: "sent"
         };
 
-        if (receipt.status === false) {
+        if (!receipt.status) {
           resObj.status = "cancelled";
+          console.log("false receipt... returning");
+          return resObj;
+        } else {
+          infuraEndPt
+            .post(projectIdEndPt, {
+              jsonrpc: "2.0",
+              method: "eth_call",
+              params: [
+                {
+                  to: donContractAddress,
+                  data: getBalanceOfData
+                },
+                "latest"
+              ],
+              id: 1
+            })
+            .then(response => {
+              console.log("1. >>> response", response);
+              const balance = Web3.utils.fromWei(response.data.result, "ether");
+              console.log("1. >>> balance", balance);
+              walletsDocRef.update({
+                "wallets.donpia.balance": parseFloat(balance)
+              });
+
+              return { balance };
+            })
+            .catch(err => console.log("err ---->>>", err));
+
           return resObj;
         }
-
-        infuraEndPt
-          .post(projectIdEndPt, {
-            jsonrpc: "2.0",
-            method: "eth_call",
-            params: [
-              {
-                to: donContractAddress,
-                data: data
-              },
-              "latest"
-            ],
-            id: 1
-          })
-          .then(response => {
-            const balance = Web3.utils.fromWei(response.data.result, "ether");
-            walletsDocRef.update({
-              "wallets.donpia.balance": parseFloat(balance)
-            });
-
-            return balance;
-          })
-          .catch(err => console.log(err));
-
-        return resObj;
       })
       .on("confirmation", (confirmationNumber, receipt) => {
         console.log(
@@ -199,41 +202,37 @@ module.exports = functions.https.onCall(async (data, context) => {
         );
         console.log(receipt);
 
-        if (receipt.status !== "false") {
-          if (confirmationNumber === 10) {
-            console.log("Transaction confirmed with 10 confirmations");
-            transfersDocRef.update({
-              status: "confirmed"
-            });
+        if (receipt.status) {
+          //console.log("Transaction confirmed with 10 confirmations");
+          console.log("true receipt -> continue");
+          transfersDocRef.update({
+            status: "confirmed"
+          });
 
-            infuraEndPt
-              .post(projectIdEndPt, {
-                jsonrpc: "2.0",
-                method: "eth_call",
-                params: [
-                  {
-                    to: donContractAddress,
-                    data: data
-                  },
-                  "latest"
-                ],
-                id: 1
-              })
-              .then(response => {
-                const balance = Web3.utils.fromWei(
-                  response.data.result,
-                  "ether"
-                );
-                walletsDocRef.update({
-                  "wallets.donpia.balance": parseFloat(balance)
-                });
+          infuraEndPt
+            .post(projectIdEndPt, {
+              jsonrpc: "2.0",
+              method: "eth_call",
+              params: [
+                {
+                  to: donContractAddress,
+                  data: getBalanceOfData
+                },
+                "latest"
+              ],
+              id: 1
+            })
+            .then(response => {
+              console.log("2. >>> response", response);
+              const balance = Web3.utils.fromWei(response.data.result, "ether");
+              console.log("2. >>> balance", balance);
+              walletsDocRef.update({
+                "wallets.donpia.balance": parseFloat(balance)
+              });
 
-                return balance;
-              })
-              .catch(err => console.log(err));
-          } else if (confirmationNumber > 30) {
-            exit();
-          }
+              return { balance };
+            })
+            .catch(err => console.log("err ---->>>", err));
         } else {
           exit();
         }
