@@ -26,8 +26,6 @@ module.exports = functions.https.onCall(async (data, context) => {
     );
   }
 
-  // TODO: validate ethereum address
-  console.log(`ethereum address validity ${Web3.utils.isAddress(addressTo)}`);
   if (
     !(typeof addressTo === "string") ||
     addressTo.length === 0 ||

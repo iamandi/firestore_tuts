@@ -5,6 +5,7 @@ const keccak_256 = require("js-sha3").keccak256;
 const addWallet = require("./addUser");
 const addMessage = require("./addMessage");
 const getBalance = require("./getBalance");
+const getUniaBalance = require("./getUniaBalance");
 const sendEthereum = require("./sendEthereum");
 const sendDonpia = require("./sendDonpia");
 
@@ -33,7 +34,7 @@ app.get("/hello", (req, res) => {
 });
 
 exports.addMessage = addMessage;
-
+exports.getUniaBalance = getUniaBalance;
 exports.getBalance = getBalance;
 exports.sendEthereum = sendEthereum;
 exports.sendDonpia = sendDonpia;
