@@ -83,26 +83,84 @@ const bonus = 5000;
 /* const donContractAddress = "0xe69968dd1913f135f3b28ed81d9a02368204bd66";
 const projectIdEndPt = `/${config.get("project_id")}`;
 const projectSecret = `${config.get("project_secret")}`;
-const projectIdEndPtUrl = `https://mainnet.infura.io/v3${projectIdEndPt}`;
 const infuraEndPt = Axios.create({
   baseURL: "https://mainnet.infura.io/v3",
   headers: { "Content-type": "application/json" },
   auth: { username: "", password: projectSecret }
-});
-const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl)); */
-
+});*/
 //const smallAcctPriv = config.get("donpia_private_key");
 const smallAcct = "0x00619c45052A1472C3c14b529cee311d6bCd1b2c";
 const bigAcct = "0x965d23784424e52942efD08AD77c79DA0029996a";
 
-(async () => {
+const projectIdEndPtUrl = `https://mainnet.infura.io/v3${projectIdEndPt}`;
+const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
+
+const {
+  donContractAddress: contractAddress,
+  donAbi: abi
+} = require("./functions/express-server/startup/donpia");
+
+const contract = new web3.eth.Contract(abi, contractAddress);
+
+/* (async () => {
   try {
-    const txCount = await web3.eth.getTransactionCount(smallAcct);
+    const addressFrom = "0x1b8cdae616d1da9aac3288c584667abbdaa1704a";
+    const addressTo = "0x00619c45052A1472C3c14b529cee311d6bCd1b2c";
+    const privateKey = Buffer.from(
+      "201b5bfa1a3ccdd03c83d3cf421f32dab991cbe886e0f4643c291af711a22f27",
+      "hex"
+    );
+
+    const txCount = await web3.eth.getTransactionCount(addressFrom);
     console.log(txCount);
+
+    const amtWei = Web3.utils.toWei("10", "ether"); 
+    const gasPriceWei = Web3.utils.toWei("10", "Gwei");
+    const gasNum = "50000";
+    const gasPrice = Web3.utils.toHex(gasPriceWei);
+    const gas = Web3.utils.toHex(gasNum);
+
+    contract.from = addressFrom;
+    const contractData = contract.methods
+      .transfer(addressTo, amtWei)
+      .encodeABI();
+
+    const txData = {
+      nonce: web3.utils.toHex(txCount),
+      gas,
+      gasPrice,
+      to: contractAddress,
+      from: addressFrom,
+      value: "0x0",
+      data: contractData,
+      chainId: 1
+    };
+
+    const transaction = new Tx(txData);
+    transaction.sign(privateKey);
+    const serializedTx = transaction.serialize().toString("hex");
+
+    web3.eth
+      .sendSignedTransaction("0x" + serializedTx)
+      .on("transactionHash", hash => {
+        console.log("hash recvd, create a new doc", hash);
+      })
+      .on("receipt", receipt => {
+        console.log("receipt recvd", receipt);
+      })
+      .on("confirmation", (confirmationNumber, receipt) => {
+        console.log(
+          `confirmation recvd with confirmationNumber: ${confirmationNumber} and receipt object:`
+        );
+        console.log(receipt);
+      })
+      .on("error", err => {
+        console.log(err);
+      });
   } catch (ex) {
     console.log(ex);
   }
-})();
+})(); */
 
 //const contract = new web3.eth.Contract(donAbi, donContractAddress);
 
@@ -114,9 +172,14 @@ const bigAcct = "0x965d23784424e52942efD08AD77c79DA0029996a";
 //const amount = "0.001";
 //sendEthereum(web3, amount, smallAcct, bigAcct, smallAcctPriv);
 //getDonpiaTotalSupply(infuraEndPt, projectIdEndPt, donContractAddress);
-/* const addressFrom = smallAcct;
-const addressTo = bigAcct;
-const privateKey = smallAcctPriv;
+//const addressFrom = smallAcct;
+//const addressTo = bigAcct;
+//const privateKey = smallAcctPriv;
+
+/* const addressFrom = "0x1b8cdae616d1da9aac3288c584667abbdaa1704a";
+const addressTo = "0x00619c45052A1472C3c14b529cee311d6bCd1b2c";
+const privateKey = "";
+const donContractAddress = contractAddress;
 const amountToSend = "10";
 sendDonpia(
   web3,

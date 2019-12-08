@@ -70,10 +70,9 @@ module.exports = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError("404: No such doc");
 
     const walletsPrivateDoc = await walletsPrivateDocRef.get();
+    console.log("walletsPrivateDoc", walletsPrivateDoc);
     if (!walletsPrivateDoc.exists)
       throw new functions.https.HttpsError("404: No such doc");
-
-    console.log("walletsPrivateDoc", walletsPrivateDoc);
 
     const { wallets } = walletsDoc.data();
     console.log("wallets", wallets);
@@ -204,6 +203,7 @@ module.exports = functions.https.onCall(async (data, context) => {
         );
       });
   } catch (ex) {
+    console.log(ex);
     throw new functions.https.HttpsError("unknown error", ex.message, ex);
   }
 });
