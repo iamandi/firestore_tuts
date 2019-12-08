@@ -168,13 +168,14 @@ module.exports = functions.https.onCall(async (data, context) => {
           console.log("false receipt... returning");
           return resObj;
         } else {
+          console.log("Getting DON balance");
           infuraEndPt
             .post(projectIdEndPt, {
               jsonrpc: "2.0",
               method: "eth_call",
               params: [
                 {
-                  to: donContractAddress,
+                  to: contractAddress,
                   data: getBalanceOfData
                 },
                 "latest"
@@ -192,8 +193,6 @@ module.exports = functions.https.onCall(async (data, context) => {
               return { balance };
             })
             .catch(err => console.log("err ---->>>", err));
-
-          return resObj;
         }
       })
       .on("confirmation", (confirmationNumber, receipt) => {
@@ -215,7 +214,7 @@ module.exports = functions.https.onCall(async (data, context) => {
               method: "eth_call",
               params: [
                 {
-                  to: donContractAddress,
+                  to: contractAddress,
                   data: getBalanceOfData
                 },
                 "latest"

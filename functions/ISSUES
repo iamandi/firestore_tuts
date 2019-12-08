@@ -1,1 +1,3 @@
 1. Name uniformity, replace TICKER with TOKEN in the API for getBalance
+2. Ethereum balance should also update along with donpia, when you send donpia
+3. Send donpia function is unreliable, refactor it and reduce its computational time.
