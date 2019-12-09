@@ -80,27 +80,40 @@ const bonus = 5000;
 //getTransactionWithHash();
 //addTransaction();
 
-/* const donContractAddress = "0xe69968dd1913f135f3b28ed81d9a02368204bd66";
+const donContractAddress = "0xe69968dd1913f135f3b28ed81d9a02368204bd66";
 const projectIdEndPt = `/${config.get("project_id")}`;
 const projectSecret = `${config.get("project_secret")}`;
 const infuraEndPt = Axios.create({
   baseURL: "https://mainnet.infura.io/v3",
   headers: { "Content-type": "application/json" },
   auth: { username: "", password: projectSecret }
-});*/
+});
 //const smallAcctPriv = config.get("donpia_private_key");
 const smallAcct = "0x00619c45052A1472C3c14b529cee311d6bCd1b2c";
 const bigAcct = "0x965d23784424e52942efD08AD77c79DA0029996a";
 
-const projectIdEndPtUrl = `https://mainnet.infura.io/v3${projectIdEndPt}`;
-const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
+infuraEndPt
+  .post(projectIdEndPt, {
+    jsonrpc: "2.0",
+    method: "eth_getBalance",
+    params: ["0x172E5f4B7fFF6908587C5625278E508854fD0aF1", "latest"],
+    id: 1
+  })
+  .then(response => {
+    console.log(">> ", response.data.result);
+    const balance = Web3.utils.fromWei(response.data.result, "ether");
+    console.log(">>> balance: " + balance + " ETH");
+  });
 
-const {
+//const projectIdEndPtUrl = `https://mainnet.infura.io/v3${projectIdEndPt}`;
+//const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
+
+/* const {
   donContractAddress: contractAddress,
   donAbi: abi
 } = require("./functions/express-server/startup/donpia");
 
-const contract = new web3.eth.Contract(abi, contractAddress);
+const contract = new web3.eth.Contract(abi, contractAddress); */
 
 /* (async () => {
   try {

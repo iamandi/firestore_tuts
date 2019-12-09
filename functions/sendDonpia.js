@@ -1,7 +1,6 @@
 const functions = require("firebase-functions");
 const FieldValue = require("firebase-admin").firestore.FieldValue;
 const Web3 = require("web3");
-const keccak_256 = require("js-sha3").keccak256;
 const Tx = require("ethereumjs-tx").Transaction;
 const {
   donContractAddress: contractAddress,

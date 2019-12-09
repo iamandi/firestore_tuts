@@ -1,8 +1,23 @@
-async function getBalanceEthereum(web3, addressFrom) {
-  try {
-    const balanceWei = web3.eth.getBalance(addressFrom);
+const {
+  infuraEndPt,
+  projectIdEndPt
+} = require("../express-server/startup/infura");
 
-    return { balanceWei };
+async function getBalanceEthereum(addressFrom) {
+  try {
+    const response = await infuraEndPt.post(projectIdEndPt, {
+      jsonrpc: "2.0",
+      method: "eth_getBalance",
+      params: [addressFrom, "latest"],
+      id: 1
+    });
+
+    if (response.data && response.data.result) {
+      const balanceWei = response.data.result;
+      return { balanceWei };
+    } else {
+      throw new Error("BAD response", response);
+    }
   } catch (error) {
     console.log("getBalanceEthereum error:", error);
     return { error: error.message };
@@ -10,32 +25,3 @@ async function getBalanceEthereum(web3, addressFrom) {
 }
 
 module.export = getBalanceEthereum;
-
-/* web3.eth
-          .getBalance(addressFrom)
-          .then(balanceWei => {
-            const balanceEth = Web3.utils.fromWei(balanceWei, "ether");
-            console.log("1.receipt: balance in ETH: ", balanceEth);
-
-            walletsDocRef.update({
-              "wallets.ethereum.balance": balanceEth
-            });
-
-            return balanceEth;
-          })
-          .catch(err => console.log(err)); */
-
-/*
-web3.eth
-            .getBalance(addressFrom)
-            .then(balanceWei => {
-              const balanceEth = Web3.utils.fromWei(balanceWei, "ether");
-              console.log("2.receipt: balance in ETH : ", balanceEth);
-
-              walletsDocRef.update({
-                "wallets.ethereum.balance": balanceEth
-              });
-
-              return balanceEth;
-            })
-            .catch(err => console.log(err));*/

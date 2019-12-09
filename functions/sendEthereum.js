@@ -95,7 +95,7 @@ module.exports = functions.https.onCall(async (data, context) => {
       .on("receipt", receipt => {
         console.log("receipt recvd", receipt);
 
-        const { error, balanceWei } = getBalance(web3, addressFrom);
+        const { error, balanceWei } = getBalance(addressFrom);
         if (error) {
           console.log("getBalance error", error);
           return { error };
@@ -124,7 +124,7 @@ module.exports = functions.https.onCall(async (data, context) => {
               status: "confirmed"
             });
 
-            const { error, balanceEth } = getBalance(web3, addressFrom);
+            const { error, balanceEth } = getBalance(addressFrom);
             if (error) {
               console.log("getBalance error", error);
               return { error };
