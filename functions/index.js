@@ -2,7 +2,7 @@ const functions = require("firebase-functions");
 const Web3 = require("web3");
 const keccak_256 = require("js-sha3").keccak256;
 
-const addWallet = require("./addUser");
+const addUser = require("./addUser");
 const addMessage = require("./addMessage");
 const getBalance = require("./getBalance");
 const getUniaBalance = require("./getUniaBalance");
@@ -11,17 +11,13 @@ const sendDonpia = require("./sendDonpia");
 
 const app = require("./express-server/app");
 
-const { donContractAddress } = require("./express-server/startup/donpia");
-const {
-  infuraEndPt,
-  projectIdEndPt
-} = require("./express-server/startup/infura");
-
 const admin = require("./express-server/config/firebaseService");
 const db = admin.firestore();
 
-exports.addWallet = functions.auth.user().onCreate(user => {
-  addWallet.handler(db, user);
+exports.addUser = functions.auth.user().onCreate(user => {
+  const addUserResponse = addUser.handler(db, user);
+  console.log("addUserResponse", addUserResponse);
+  return addUserResponse;
 });
 
 app.get("/hello", (req, res) => {

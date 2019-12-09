@@ -1,6 +1,3 @@
-//const web3 = require("../startup/web3");
-const Web3 = require("web3");
-
 const donAbi = [
   {
     constant: true,
@@ -195,13 +192,7 @@ const donAbi = [
   }
 ];
 
-//const { projectIdEndPtUrl } = require("../startup/infura");
-
-//const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
-
 const donContractAddress = "0xe69968dd1913f135f3b28ed81d9a02368204bd66";
-//const donContract = new web3.eth.Contract(donAbi, donContractAddress);
 
 module.exports.donAbi = donAbi;
 module.exports.donContractAddress = donContractAddress;
-//module.exports.donContract = donContract;

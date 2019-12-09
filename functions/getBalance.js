@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const Web3 = require("web3");
 const keccak_256 = require("js-sha3").keccak256;
+
 const { donContractAddress } = require("./express-server/startup/donpia");
 const {
   infuraEndPt,
@@ -35,10 +36,11 @@ module.exports = functions.https.onCall(async (data, context) => {
     if (!doc.exists) throw new functions.https.HttpsError("404: No such doc");
 
     const { wallets } = doc.data();
+    const { ethereum, donpia } = wallets;
 
-    if (ticker === wallets.ethereum.ticker) {
-      const address = wallets.ethereum.publicAddress;
-      console.log("address:", address, "ticker:", wallets.ethereum.ticker);
+    if (ticker === ethereum.ticker) {
+      const address = ethereum.publicAddress;
+      console.log("address:", address, "ticker:", ethereum.ticker);
 
       const response = await infuraEndPt.post(projectIdEndPt, {
         jsonrpc: "2.0",
@@ -56,9 +58,9 @@ module.exports = functions.https.onCall(async (data, context) => {
       walletsDocRef.update({ "wallets.ethereum.balance": parseFloat(balance) });
 
       return { balance };
-    } else if (ticker === wallets.donpia.ticker) {
-      const address = wallets.donpia.publicAddress;
-      console.log("address:", address, "ticker:", wallets.donpia.ticker);
+    } else if (ticker === donpia.ticker) {
+      const address = donpia.publicAddress;
+      console.log("address:", address, "ticker:", donpia.ticker);
 
       const data =
         "0x" +

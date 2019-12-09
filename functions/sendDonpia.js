@@ -7,59 +7,24 @@ const {
   donContractAddress: contractAddress,
   donAbi: abi
 } = require("./express-server/startup/donpia");
-const {
-  infuraEndPt,
-  projectIdEndPt,
-  projectIdEndPtUrl
-} = require("./express-server/startup/infura");
+const { projectIdEndPtUrl } = require("./express-server/startup/infura");
+const model = require("./model/sendDonpiaModel");
+const getBalance = require("./utils/getBalanceDonpia");
+
 const admin = require("./express-server/config/firebaseService");
 const db = admin.firestore();
 
+const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
+const contract = new web3.eth.Contract(abi, contractAddress);
+const GAS_NUM = "50000";
+const GAS_PRICE = "10";
+
 module.exports = functions.https.onCall(async (data, context) => {
-  const token = data.token;
-  const amount = data.amount;
-  const addressTo = data.addressTo;
-  console.log(
-    `token = ${token} -- amount = ${amount} -- addressTo = ${addressTo}`
-  );
+  const { token, amount, addressTo } = data;
 
-  if (
-    !(typeof token === "string") ||
-    token.length === 0 ||
-    token !== "Donpia"
-  ) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "The function must be called with " +
-        'one arguments "token" with valid token.'
-    );
-  }
+  const { error, errorMessage } = model(data);
+  if (error) throw new functions.https.HttpsError(error, errorMessage);
 
-  if (
-    !(typeof addressTo === "string") ||
-    addressTo.length === 0 ||
-    !Web3.utils.isAddress(addressTo)
-  ) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "The function must be called with " +
-        'one arguments "addressTo" with valid addressTo.'
-    );
-  }
-
-  if (
-    !(typeof amount === "string") ||
-    !parseFloat(amount) ||
-    parseFloat(amount) <= 0
-  ) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "The function must be called with " +
-        'one arguments "amount" with valid amount.'
-    );
-  }
-
-  // Checking that the user is authenticated.
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "failed-precondition",
@@ -71,12 +36,6 @@ module.exports = functions.https.onCall(async (data, context) => {
   const walletsDocRef = db.collection("wallets").doc(uid);
   const walletsPrivateDocRef = db.collection("walletsPrivate").doc(uid);
   const transfersDocRef = db.collection(`${uid}_transfers`).doc();
-  console.log("transfersDocRef", transfersDocRef);
-
-  const web3 = new Web3(new Web3.providers.HttpProvider(projectIdEndPtUrl));
-
-  console.log("contractAddress", contractAddress);
-  const contract = new web3.eth.Contract(abi, contractAddress);
 
   try {
     const walletsDoc = await walletsDocRef.get();
@@ -97,21 +56,14 @@ module.exports = functions.https.onCall(async (data, context) => {
     console.log("donpia", donpia);
 
     const amtWei = web3.utils.toWei(amount, "ether");
-    const gasPriceWei = Web3.utils.toWei("10", "Gwei");
-    const gasNum = "50000";
-    const gasPrice = Web3.utils.toHex(gasPriceWei);
-    const gas = Web3.utils.toHex(gasNum);
+    const gasPrice = Web3.utils.toHex(Web3.utils.toWei(GAS_PRICE, "Gwei"));
+    const gas = Web3.utils.toHex(GAS_NUM);
     console.log(`amtWei = ${amtWei} -- gasPrice = ${gasPrice} -- gas = ${gas}`);
 
     contract.from = addressFrom;
     const transferData = contract.methods
       .transfer(addressTo, amtWei)
       .encodeABI();
-    const getBalanceOfData =
-      "0x" +
-      keccak_256.hex("balanceOf(address)").substr(0, 8) +
-      "000000000000000000000000" +
-      addressFrom.substr(2);
 
     const txCount = await web3.eth.getTransactionCount(addressFrom);
     const txData = {
@@ -124,14 +76,12 @@ module.exports = functions.https.onCall(async (data, context) => {
       data: transferData,
       chainId: 1
     };
-    console.log(`txData = ${txData}`);
 
     const privateKey = Buffer.from(donpia.privateKey, "hex");
-    console.log("privateKey", privateKey);
-
     const transaction = new Tx(txData);
     transaction.sign(privateKey);
     const serializedTx = transaction.serialize().toString("hex");
+    console.log("serializedTx", serializedTx);
 
     let hashVar = "";
     web3.eth
@@ -169,37 +119,26 @@ module.exports = functions.https.onCall(async (data, context) => {
           return resObj;
         } else {
           console.log("Getting DON balance");
-          infuraEndPt
-            .post(projectIdEndPt, {
-              jsonrpc: "2.0",
-              method: "eth_call",
-              params: [
-                {
-                  to: contractAddress,
-                  data: getBalanceOfData
-                },
-                "latest"
-              ],
-              id: 1
-            })
-            .then(response => {
-              console.log("1. >>> response", response);
-              const balance = Web3.utils.fromWei(response.data.result, "ether");
-              console.log("1. >>> balance", balance);
-              walletsDocRef.update({
-                "wallets.donpia.balance": parseFloat(balance)
-              });
 
-              return { balance };
-            })
-            .catch(err => console.log("err ---->>>", err));
+          const { error, balanceWei } = getBalance(addressFrom);
+          if (error) {
+            console.log("getBalance error", error);
+            return { error };
+          } else console.log("getBalance balanceWei", balanceWei);
+
+          const balance = web3.utils.fromWei(balanceWei, "ether");
+          console.log("getBalance balance in DON : ", balance);
+
+          walletsDocRef.update({
+            "wallets.donpia.balance": parseFloat(balance)
+          });
+
+          return { balance };
         }
       })
       .on("confirmation", (confirmationNumber, receipt) => {
-        console.log(
-          `confirmation recvd with confirmationNumber: ${confirmationNumber} and receipt object:`
-        );
-        console.log(receipt);
+        console.log(`confirmation: confirmationNumber: ${confirmationNumber}`);
+        console.log("receipt", receipt);
 
         if (receipt.status) {
           //console.log("Transaction confirmed with 10 confirmations");
@@ -208,48 +147,40 @@ module.exports = functions.https.onCall(async (data, context) => {
             status: "confirmed"
           });
 
-          infuraEndPt
-            .post(projectIdEndPt, {
-              jsonrpc: "2.0",
-              method: "eth_call",
-              params: [
-                {
-                  to: contractAddress,
-                  data: getBalanceOfData
-                },
-                "latest"
-              ],
-              id: 1
-            })
-            .then(response => {
-              console.log("2. >>> response", response);
-              const balance = Web3.utils.fromWei(response.data.result, "ether");
-              console.log("2. >>> balance", balance);
-              walletsDocRef.update({
-                "wallets.donpia.balance": parseFloat(balance)
-              });
+          const { error, balanceWei } = getBalance(addressFrom);
+          if (error) {
+            console.log("getBalance error", error);
+            return { error };
+          } else console.log("getBalance balanceWei", balanceWei);
 
-              return { balance };
-            })
-            .catch(err => console.log("err ---->>>", err));
+          const balance = web3.utils.fromWei(balanceWei, "ether");
+          console.log("getBalance balance in DON : ", balance);
+
+          walletsDocRef.update({
+            "wallets.donpia.balance": parseFloat(balance)
+          });
+
+          return { balance };
         } else {
           exit();
         }
       })
       .on("error", err => {
-        console.log(err);
-        transfersDocRef.set(
-          {
-            amount: parseFloat(amount),
-            date: FieldValue.serverTimestamp(),
-            hash: hashVar,
-            status: "cancelled",
-            to_from: addressTo,
-            token: "DON",
-            type: "sent"
-          },
-          { merge: true }
-        );
+        console.log("sendDonpia blockchain error", err);
+        if (hashVar.trim() !== "") {
+          transfersDocRef.set(
+            {
+              amount: parseFloat(amount),
+              date: FieldValue.serverTimestamp(),
+              hash: hashVar,
+              status: "cancelled",
+              to_from: addressTo,
+              token: "DON",
+              type: "sent"
+            },
+            { merge: true }
+          );
+        }
 
         throw new functions.https.HttpsError(
           "blockchain error",
