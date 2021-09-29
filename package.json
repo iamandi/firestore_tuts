@@ -29,7 +29,7 @@
     "fawn": "^2.1.5",
     "firebase-admin": "^8.7.0",
     "helmet": "^3.21.2",
-    "i": "^0.3.6",
+    "i": "^0.3.7",
     "joi-objectid": "^3.0.1",
     "js-sha3": "^0.8.0",
     "jsonwebtoken": "^8.5.1",
